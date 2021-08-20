@@ -1,11 +1,11 @@
 const Pool = require("pg").Pool;
 
 const pool = new Pool({
-  host: process.env.DB_HOST ,
-  user: process.env.DB_USERNAME ,
-  password: process.env.DB_PASSWORD ,
+  host: 'tai.db.elephantsql.com' ,
+  user: 'xcvbpydf' ,
+  password: 'ylKKydaOtj4wtc2JY8aDsShxs4BDk-Vl',
   port: 5432,
-  database: process.env.DATABASE
+  database: 'xcvbpydf'
 });
 
 module.exports = pool;

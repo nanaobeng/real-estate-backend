@@ -21,6 +21,7 @@ router.post("/register", validInfo, async (req, res) => {
     }
 
     const salt = await bcrypt.genSalt(10);
+  
     const bcryptPassword = await bcrypt.hash(password, salt);
 
     let newUser = await pool.query(
