@@ -7,8 +7,11 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
+
 //routes
-app.use("/authentication", require("./routes/auth"));
+const authRoutes = require('./routes/auth')
+app.use(authRoutes)
+
 
 
 app.listen(5000, () => {
