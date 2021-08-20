@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 //routes
-
+app.use("/authentication", require("./routes/auth"));
 
 
 app.listen(5000, () => {
