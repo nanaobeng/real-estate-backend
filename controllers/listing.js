@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+require('dotenv').config()
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const validInfo = require("../utils/validation");
@@ -10,13 +11,13 @@ const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3({
-    accessKeyId:'AKIAZUG3G6F7YWX5YIRY',
-    secretAccessKey: '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'
+
 })
 
 
 exports.addListing =  async (req,res) => {
     try {
+        console.log(process.env.AKIAZUG3G6F7YWX5YIRY)
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.multiples = true
@@ -73,7 +74,7 @@ exports.addListing =  async (req,res) => {
     
         // Setting up S3 upload parameters
         const params = {
-            Bucket: 'swifthomes',
+            Bucket: 'swiftwebapp',
             Key: files.image[i].name, // File name you want to save as in S3
             Body: fileContent
         };
@@ -153,3 +154,46 @@ catch (err) {
 
 
 };
+
+
+exports.getListing =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      const select = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.status(401).json(`listing does not exist!`);
+      }
+      const newList = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
+        id
+      ]);
+  
+      res.json(newList.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+
+
+  
+  exports.deleteListing =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      const select = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.status(401).json(`Listing does not exist!`);
+      }
+      const deleteListing = await pool.query("DELETE FROM listing WHERE listing_id = $1", [
+        id
+      ]);
+      res.json("Listing was deleted!");
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
