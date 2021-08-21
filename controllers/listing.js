@@ -20,7 +20,7 @@ exports.addListing =  async (req,res) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.multiples = true
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, async (err, fields, files) => {
         if (err) {
             return res.status(400).json({
                 error: 'Image could not be uploaded'
@@ -34,6 +34,7 @@ exports.addListing =  async (req,res) => {
              
              
             } = fields;
+            const l_id = ''
 
         //insert listing
 
@@ -45,6 +46,7 @@ exports.addListing =  async (req,res) => {
                 );
             
                 res.json(newLocation.rows[0]);
+                console.log(newLocation.rows[0].listing_id)
 
 
         //     for(var i = 0; i<files.image.length ; i++){
