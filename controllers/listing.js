@@ -5,17 +5,34 @@ const pool = require("../db");
 const validInfo = require("../utils/validation");
 const jwtGenerator = require("../utils/jwtGenerator");
 const authorize = require("../utils/authorize");
+const formidable = require('formidable');
+const _ = require('lodash');
+const fs = require('fs');
 
 
 
 exports.addListing =  async (req,res) => {
+
+    let form = new formidable.IncomingForm();
+    form.keepExtensions = true;
+    form.parse(req, (err, fields, files) => {
+        if (err) {
+            return res.status(400).json({
+                error: 'Image could not be uploaded'
+            });
+        }
+        else{
+            console.log('first test')
+        }
+
+    })
     try {
         const { listing_title,thumbnail,description,property_type,
             rooms,has_parking,available_for_sale,available_for_rent,
             sale_price,location_id
         
         
-        } = req.body;
+        } = fields;
         const select = await pool.query("SELECT * FROM listing WHERE listing_title = $1", [
             listing_title
           ])
