@@ -31,7 +31,7 @@ exports.addListing =  async (req,res) => {
              
             } = fields;
             for(var i = 0; i<files.image.length ; i++){
-                console.log(files.image.path[i])
+                console.log(files.image[i].path)
             }
         }
       
