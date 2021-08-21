@@ -10,6 +10,6 @@ const {addLocation} = require('../controllers/location');
 const { isAuth } = require("../controllers/auth");
 
 
-router.post("/admin/location/add", isAuth,addLocation);
+router.post("/admin/location/add", authorize,addLocation);
 
 module.exports = router;
