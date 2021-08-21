@@ -182,9 +182,7 @@ exports.getListing =  async (req,res) => {
   exports.getListings =  async (req,res) => {
     try {
        
-      const select = await pool.query("SELECT * FROM listing ", [
-        id
-      ])
+      const select = await pool.query("SELECT * FROM listing ")
 
      
     
