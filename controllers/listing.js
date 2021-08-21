@@ -10,8 +10,8 @@ const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3({
-    accessKeyId:process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    accessKeyId:'AKIAZUG3G6F7YWX5YIRY',
+    secretAccessKey: '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'
 })
 
 
@@ -35,6 +35,7 @@ exports.addListing =  async (req,res) => {
              
             } = fields;
             let l_id = ''
+            let image = ''
 
 
 
@@ -85,12 +86,13 @@ exports.addListing =  async (req,res) => {
             if (err) {
                 throw err;
             }
+
             console.log(`File uploaded successfully. ${data.Location}`);
             
             // uploading to postgress
             const newImage = await pool.query(
                       "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
-                      [l_id,(data.location)]
+                      [l_id,(data.Location)]
                     );
 
                     res.json(newImage.rows[0]);      
@@ -98,6 +100,7 @@ exports.addListing =  async (req,res) => {
             }
             catch (err) {
                 console.error(err.message);
+                return;
                } 
         });
             }
