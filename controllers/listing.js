@@ -25,10 +25,10 @@ exports.addListing =  async (req,res) => {
           }
 
         const newLocation = await pool.query(
-          "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,has_parking,available_for_sale,available_for_rent,sale_price,location_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
+          "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,has_parking,available_for_sale,available_for_rent,sale_price,location_id,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *",
           [listing_title,thumbnail,description,property_type,
             rooms,has_parking,available_for_sale,available_for_rent,
-            sale_price,location_id]
+            sale_price,location_id,'pending']
         );
     
         res.json(newLocation.rows[0]);
