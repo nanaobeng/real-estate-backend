@@ -53,3 +53,25 @@ exports.updateLocation =  async (req,res) => {
       console.error(err.message);
     }
   }
+
+
+
+  exports.getLocation =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      const select = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.status(401).json(`Location does not exist!`);
+      }
+      const todo = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
+        id
+      ]);
+  
+      res.json(todo.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
