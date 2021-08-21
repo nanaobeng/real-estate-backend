@@ -35,7 +35,13 @@ exports.updateLocation =  async (req,res) => {
     try {
       const { id } = req.params;
       const { city,region,country,coordinates } = req.body;
-      const date = ''
+      const select = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.status(401).json(`Location does not exist!`);
+      }
       const updateLocation = await pool.query(
         "UPDATE locations SET city = $2 ,region = $3,country = $4,coordinates = $5 WHERE location_id = $1",
         [id,city,region,country,coordinates]
