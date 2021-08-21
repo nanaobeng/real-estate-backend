@@ -34,7 +34,7 @@ exports.addListing =  async (req,res) => {
              
              
             } = fields;
-            const l_id = ''
+            let l_id = ''
 
 
 
@@ -58,41 +58,41 @@ exports.addListing =  async (req,res) => {
             
                 res.json(newLocation.rows[0]);
                 l_id = newLocation.rows[0].listing_id
-                console.log(l_id + "yes")
+             
 
 
-        //     for(var i = 0; i<files.image.length ; i++){
+            for(var i = 0; i<files.image.length ; i++){
                     
-        // let fileName = files.image.path
+        let fileName = files.image.path
 
             
-        // // Read content from the file
-        // const fileContent = fs.readFileSync(fileName);
+        // Read content from the file
+        const fileContent = fs.readFileSync(fileName);
     
-        // // Setting up S3 upload parameters
-        // const params = {
-        //     Bucket: 'swifthomes',
-        //     Key: files.photo.name, // File name you want to save as in S3
-        //     Body: fileContent
-        // };
+        // Setting up S3 upload parameters
+        const params = {
+            Bucket: 'swifthomes',
+            Key: files.photo.name, // File name you want to save as in S3
+            Body: fileContent
+        };
 
         
     
-        // // Uploading files to the bucket
-        // s3.upload(params, function(err, data) {
-        //     if (err) {
-        //         throw err;
-        //     }
-        //     console.log(`File uploaded successfully. ${data.Location}`);
+        // Uploading files to the bucket
+        s3.upload(params, async function(err, data) {
+            if (err) {
+                throw err;
+            }
+            console.log(`File uploaded successfully. ${data.Location}`);
             
-        //     // uploading to postgress
-        //     const newImage = await pool.query(
-        //               "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
-        //               [listing_id,(data.location)]
-        //             );
+            // uploading to postgress
+            const newImage = await pool.query(
+                      "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
+                      [l_id,(data.location)]
+                    );
             
-        // });
-        //     }
+        });
+            }
         }
       
 
