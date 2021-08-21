@@ -27,12 +27,14 @@ exports.updateLocation =  async (req,res) => {
     try {
       const { id } = req.params;
       const { city,region,country,coordinates } = req.body;
+      const date = ''
       const updateLocation = await pool.query(
-        "UPDATE locations SET city = $2 ,region = $3,country = $4,coordinates = $5, date_modified=$6 WHERE location_id = $1",
-        [id,city,region,country,coordinates,Date.now()]
+        "UPDATE locations SET city = $2 ,region = $3,country = $4,coordinates = $5 WHERE location_id = $1",
+        [id,city,region,country,coordinates]
       );
   
       res.json("Location was updated!");
+      
     } catch (err) {
       console.error(err.message);
     }
