@@ -10,7 +10,9 @@ app.use(express.json());
 
 //routes
 const authRoutes = require('./routes/auth')
+const locationRoutes = require('./routes/location')
 app.use(authRoutes)
+app.use(locationRoutes)
 
 
 
