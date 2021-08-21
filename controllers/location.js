@@ -12,7 +12,7 @@ exports.addLocation =  async (req,res) => {
         const { city,region,country,coordinates } = req.body;
         const newLocation = await pool.query(
           "INSERT INTO locations (city,region,country,coordinates) VALUES($1,$2,$3,$4) RETURNING *",
-          [description]
+          [city,region,country,coordinates]
         );
     
         res.json(newLocation.rows[0]);
