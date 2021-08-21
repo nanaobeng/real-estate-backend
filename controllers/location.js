@@ -10,6 +10,14 @@ const authorize = require("../utils/authorize");
 exports.addLocation =  async (req,res) => {
     try {
         const { city,region,country,coordinates } = req.body;
+        const select = await pool.query("SELECT * FROM locations WHERE city = $1", [
+            city
+          ])
+
+          if (select.rows.length > 0) {
+            return res.status(401).json(`${city} already exists`);
+          }
+
         const newLocation = await pool.query(
           "INSERT INTO locations (city,region,country,coordinates) VALUES($1,$2,$3,$4) RETURNING *",
           [city,region,country,coordinates]
