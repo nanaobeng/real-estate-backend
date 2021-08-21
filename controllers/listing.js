@@ -24,6 +24,14 @@ exports.addListing =  async (req,res) => {
             return res.status(401).json(`${listing_title} already exists`);
           }
 
+          const checkLocation = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
+            location_id
+          ])
+
+          if (checkLocation.rows.length < 0) {
+            return res.status(401).json(`Requested Location does not exist`);
+          }
+
         const newLocation = await pool.query(
           "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,has_parking,available_for_sale,available_for_rent,sale_price,location_id,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *",
           [listing_title,thumbnail,description,property_type,
