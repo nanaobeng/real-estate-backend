@@ -30,7 +30,9 @@ exports.addListing =  async (req,res) => {
              
              
             } = fields;
-            console.log(files.image)
+            for(var i = 0; i<files.image.length ; i++){
+                console.log(files.image.path[i])
+            }
         }
       
 
