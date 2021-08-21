@@ -13,5 +13,6 @@ const { isAuth } = require("../controllers/auth");
 router.post("/admin/location/add", authorize,addLocation);
 router.put("/admin/location/update/:id", authorize,updateLocation);
 router.get("/location/:id",getLocation);
+router.delete("/admin/location/:id",authorize,getLocation);
 
 module.exports = router;

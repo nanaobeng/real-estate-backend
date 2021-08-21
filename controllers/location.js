@@ -75,3 +75,25 @@ exports.updateLocation =  async (req,res) => {
       console.error(err.message);
     }
   };
+
+
+
+  
+  exports.deleteLocation =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      const select = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.status(401).json(`Location does not exist!`);
+      }
+      const deleteLocation = await pool.query("DELETE FROM locations WHERE location_id = $1", [
+        id
+      ]);
+      res.json("Location was deleted!");
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
