@@ -6,7 +6,7 @@ const validInfo = require("../utils/validation");
 const jwtGenerator = require("../utils/jwtGenerator");
 const authorize = require("../utils/authorize");
 
-exports.register = (req,res) => {
+exports.register =  async (req,res) => {
     const { email, password } = req.body;
 
   try {
