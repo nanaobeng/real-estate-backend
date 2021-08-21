@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-require('dotenv').config()
+
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const validInfo = require("../utils/validation");
@@ -11,10 +11,12 @@ const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3({
+    accessKeyId:process.env.AWS_ACCESS_KEY,
+        secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY
 
 })
 
-
+require("dotenv").config();
 exports.addListing =  async (req,res) => {
     try {
         console.log(process.env.AKIAZUG3G6F7YWX5YIRY)
@@ -158,6 +160,7 @@ catch (err) {
 
 exports.getListing =  async (req,res) => {
     try {
+        console.log(process.env.AWS_ACCESS_KEY)
       const { id } = req.params;
       const select = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
         id
@@ -171,6 +174,22 @@ exports.getListing =  async (req,res) => {
       ]);
   
       res.json(newList.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  exports.getListings =  async (req,res) => {
+    try {
+       
+      const select = await pool.query("SELECT * FROM listing ", [
+        id
+      ])
+
+     
+    
+  
+      res.json(select.rows[0]);
     } catch (err) {
       console.error(err.message);
     }
