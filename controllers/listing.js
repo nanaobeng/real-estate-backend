@@ -36,6 +36,17 @@ exports.addListing =  async (req,res) => {
             } = fields;
             const l_id = ''
 
+
+
+            const select = await pool.query("SELECT * FROM listing WHERE listing_title = $1", [
+                        listing_title
+                      ])
+            
+                      if (select.rows.length > 0) {
+                        return res.status(401).json(`${listing_title} already exists`);
+                      }
+            
+
         //insert listing
 
         const newLocation = await pool.query(
@@ -46,7 +57,8 @@ exports.addListing =  async (req,res) => {
                 );
             
                 res.json(newLocation.rows[0]);
-                console.log(newLocation.rows[0].listing_id)
+                l_id = newLocation.rows[0].listing_id
+                console.log(l_id + "yes")
 
 
         //     for(var i = 0; i<files.image.length ; i++){
