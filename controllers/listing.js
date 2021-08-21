@@ -81,6 +81,7 @@ exports.addListing =  async (req,res) => {
     
         // Uploading files to the bucket
         s3.upload(params, async function(err, data) {
+          try{
             if (err) {
                 throw err;
             }
@@ -94,9 +95,13 @@ exports.addListing =  async (req,res) => {
 
                     res.json(newImage.rows[0]);      
         
-            
+            }
+            catch (err) {
+                console.error(err.message);
+               } 
         });
             }
+            
         }
       
 
