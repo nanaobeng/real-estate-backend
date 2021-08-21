@@ -63,7 +63,8 @@ exports.addListing =  async (req,res) => {
 
             for(var i = 0; i<files.image.length ; i++){
                     
-        let fileName = files.image.path
+        let fileName = files.image[i].path
+        console.log(fileName)
 
             
         // Read content from the file
@@ -90,6 +91,9 @@ exports.addListing =  async (req,res) => {
                       "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
                       [l_id,(data.location)]
                     );
+
+                    res.json(newImage.rows[0]);      
+        
             
         });
             }
