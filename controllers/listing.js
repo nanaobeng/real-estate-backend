@@ -15,6 +15,7 @@ exports.addListing =  async (req,res) => {
 
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
+    form.multiples = true
     form.parse(req, (err, fields, files) => {
         if (err) {
             return res.status(400).json({
@@ -29,7 +30,7 @@ exports.addListing =  async (req,res) => {
              
              
             } = fields;
-            console.log(files.image.path)
+            console.log(files.image)
         }
       
 
