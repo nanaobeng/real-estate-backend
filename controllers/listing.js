@@ -23,13 +23,13 @@ exports.addListing =  async (req,res) => {
         }
         else{
          
-            const { listing_title,thumbnail,description,property_type,
+            const { listing_title,description,property_type,
                 rooms,has_parking,available_for_sale,available_for_rent,
                  sale_price,location_id
              
              
             } = fields;
-            console.log(listing_title)
+            console.log(files.image.path)
         }
       
 
