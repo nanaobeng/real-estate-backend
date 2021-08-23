@@ -5,6 +5,7 @@ const pool = require("../db");
 const validInfo = require("../utils/validation");
 const jwtGenerator = require("../utils/jwtGenerator");
 const authorize = require("../utils/authorize");
+require("dotenv").config();
 
 
 exports.addLocation =  async (req,res) => {

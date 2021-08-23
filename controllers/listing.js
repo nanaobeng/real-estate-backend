@@ -187,7 +187,7 @@ exports.getListing =  async (req,res) => {
      
     
   
-      res.json(select.rows[0]);
+      res.json(select.rows);
     } catch (err) {
       console.error(err.message);
     }
@@ -213,4 +213,38 @@ exports.getListing =  async (req,res) => {
     } catch (err) {
       console.log(err.message);
     }
+  };
+
+
+  exports.listingBySeach =  async (req,res) => {
+    let order = 'DESC';
+    let sortBy = req.body.sortBy ? req.body.sortBy : 'listing_id';
+    let limit = req.body.limit ? parseInt(req.body.limit) : 20;
+    let location = req.body.location ? parseInt(req.body.location) : 1;
+    let property_type = req.body.property_type ? req.body.property_type : 'sale_price';
+    let purchase_type = req.body.purchase_type ? req.body.purchase_type : '_id';
+    let min_price = req.body.min_price ? parseInt(req.body.min_price) : 0;
+    let max_price = req.body.max_price ? parseInt(req.body.max_price) : 700;
+    let rooms = req.body.rooms ? parseInt(req.body.rooms) : 3;
+
+    let query = 'SELECT * FROM listing WHERE ';
+    if(property_type){
+        query = query + `${property_type} BETWEEN ${min_price} AND ${max_price} `
+    }
+
+    if(rooms){
+        query = query + ` AND rooms = ${rooms} `
+    }
+
+    if(location){
+        query = query + ` AND location_id = ${location} `
+    }
+
+    query = query + `ORDER BY ${sortBy} ${order}`
+
+    const select = await pool.query(query)
+    res.json(newList.rows[0]);
+
+
+
   };
