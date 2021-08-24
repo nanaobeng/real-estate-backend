@@ -190,15 +190,19 @@ exports.getListing =  async (req,res) => {
     let limit = req.body.limit ? parseInt(req.body.limit) : 6;
  
     let location = req.body.filters.location ? parseInt(req.body.filters.location) : false;
-    let property_type = req.body.filters.property_type ? req.body.filters.property_type : 'sale_price';
-    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : false;
+    let property_type = req.body.filters.property_type ? req.body.filters.property_type : false;
+    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : 'sale_price';
     let price_min = req.body.filters.price_min ? parseInt(req.body.filters.price_min) : 0;
     let price_max = req.body.filters.price_max ? parseInt(req.body.filters.price_max) : 3500;
     let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 5;
 
     let query = 'SELECT * FROM listing WHERE ';
-    if(property_type){
+    if(purchase_type){
         query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} `
+    }
+
+    if(property_type){
+        query = query + ` AND property_type = '${property_type}'  `
     }
 
     if(rooms){
