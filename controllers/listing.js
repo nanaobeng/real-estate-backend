@@ -191,7 +191,7 @@ exports.getListing =  async (req,res) => {
  
     let location = req.body.filters.location ? parseInt(req.body.filters.location) : false;
     let property_type = req.body.filters.property_type ? req.body.filters.property_type : 'sale_price';
-    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : '_id';
+    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : false;
     let price_min = req.body.filters.price_min ? parseInt(req.body.filters.price_min) : 0;
     let price_max = req.body.filters.price_max ? parseInt(req.body.filters.price_max) : 3500;
     let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 5;
