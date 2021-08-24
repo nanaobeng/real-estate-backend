@@ -119,40 +119,7 @@ catch (err) {
 
 
     
-    // try {
-    //     const { listing_title,thumbnail,description,property_type,
-    //         rooms,has_parking,available_for_sale,available_for_rent,
-    //         sale_price,location_id
-        
-        
-    //     } = fields;
-    //     const select = await pool.query("SELECT * FROM listing WHERE listing_title = $1", [
-    //         listing_title
-    //       ])
-
-    //       if (select.rows.length > 0) {
-    //         return res.status(401).json(`${listing_title} already exists`);
-    //       }
-
-    //       const checkLocation = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
-    //         location_id
-    //       ])
-
-    //       if (checkLocation.rows.length < 0) {
-    //         return res.status(401).json(`Requested Location does not exist`);
-    //       }
-
-    //     const newLocation = await pool.query(
-    //       "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,has_parking,available_for_sale,available_for_rent,sale_price,location_id,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *",
-    //       [listing_title,thumbnail,description,property_type,
-    //         rooms,has_parking,available_for_sale,available_for_rent,
-    //         sale_price,location_id,'pending']
-    //     );
     
-    //     res.json(newLocation.rows[0]);
-    //   } catch (err) {
-    //     console.error(err.message);
-    //   }
 
 
 };
@@ -217,19 +184,21 @@ exports.getListing =  async (req,res) => {
 
 
   exports.listingBySeach =  async (req,res) => {
+    
     let order = 'DESC';
-    let sortBy = req.body.sortBy ? req.body.sortBy : 'listing_id';
-    let limit = req.body.limit ? parseInt(req.body.limit) : 20;
-    let location = req.body.location ? parseInt(req.body.location) : 1;
-    let property_type = req.body.property_type ? req.body.property_type : 'sale_price';
-    let purchase_type = req.body.purchase_type ? req.body.purchase_type : '_id';
-    let min_price = req.body.min_price ? parseInt(req.body.min_price) : 0;
-    let max_price = req.body.max_price ? parseInt(req.body.max_price) : 700;
-    let rooms = req.body.rooms ? parseInt(req.body.rooms) : 3;
+    let sortBy =  'listing_id';
+    let limit = req.body.limit ? parseInt(req.body.limit) : 6;
+ 
+    let location = req.body.filters.location ? parseInt(req.body.filters.location) : false;
+    let property_type = req.body.filters.property_type ? req.body.filters.property_type : 'sale_price';
+    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : '_id';
+    let price_min = req.body.filters.price_min ? parseInt(req.body.filters.price_min) : 0;
+    let price_max = req.body.filters.price_max ? parseInt(req.body.filters.price_max) : 3500;
+    let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 5;
 
     let query = 'SELECT * FROM listing WHERE ';
     if(property_type){
-        query = query + `${property_type} BETWEEN ${min_price} AND ${max_price} `
+        query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} `
     }
 
     if(rooms){
@@ -241,9 +210,11 @@ exports.getListing =  async (req,res) => {
     }
 
     query = query + `ORDER BY ${sortBy} ${order}`
-
+    query = query + ` LIMIT ${limit}`
+    
+    console.log(query)
     const select = await pool.query(query)
-    res.json(newList.rows[0]);
+    res.json(select.rows);
 
 
 

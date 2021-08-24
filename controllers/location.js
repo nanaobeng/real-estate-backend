@@ -98,3 +98,34 @@ exports.updateLocation =  async (req,res) => {
       console.log(err.message);
     }
   };
+
+
+  exports.getLocations =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      
+      const todo = await pool.query("SELECT * FROM locations ");
+  
+      res.json(todo.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  exports.getLocationByCity =  async (req,res) => {
+    try {
+    let city = req.body.city ;
+      console.log(city)
+      
+      const todo = await pool.query("SELECT * FROM locations WHERE city = $1 ",[city]);
+  
+      res.json(todo.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+
+
+
+  
