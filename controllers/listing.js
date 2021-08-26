@@ -198,7 +198,13 @@ exports.getListing =  async (req,res) => {
 
     let query = 'SELECT * FROM listing WHERE ';
     if(purchase_type){
-        query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} `
+        if(purchase_type == "sale_price"){
+            query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} AND  available_for_sale `
+        }
+        else{
+            query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} AND  available_for_rent  `
+        }
+       
     }
 
     if(property_type){
@@ -223,3 +229,22 @@ exports.getListing =  async (req,res) => {
 
 
   };
+
+  exports.clientRequest =  async (req,res) => {
+    try {
+        
+        const { listing_id,firstname,lastname,title,email,phone } = req.body.values;
+        
+
+        const newRequests = await pool.query(
+          "INSERT INTO listing_requests (listing_id,firstname,lastname,title,email,phone,status,client_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+          [listing_id,firstname,lastname,title,email,phone,"pending","client"]
+        );
+    
+        res.json(newRequests.rows[0]);
+      } catch (err) {
+        console.error(err.message);
+      }
+
+
+};
