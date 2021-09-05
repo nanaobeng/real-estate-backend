@@ -1,4 +1,6 @@
 const express = require("express");
+const formidable = require('formidable');
+const _ = require('lodash');
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const pool = require("../db");
@@ -10,7 +12,11 @@ require("dotenv").config();
 
 exports.addLocation =  async (req,res) => {
     try {
-        const { city,region,country,coordinates } = req.body;
+        let form = new formidable.IncomingForm();
+        form.parse(req, async (err, fields) => {
+            console.log(fields)
+        const { city,region,country,coordinates } = fields;
+       
         const select = await pool.query("SELECT * FROM locations WHERE city = $1", [
             city
           ])
@@ -19,17 +25,30 @@ exports.addLocation =  async (req,res) => {
             return res.status(401).json(`${city} already exists`);
           }
 
-        const newLocation = await pool.query(
-          "INSERT INTO locations (city,region,country,coordinates) VALUES($1,$2,$3,$4) RETURNING *",
-          [city,region,country,coordinates]
-        );
+          try{
+            const newLocation = await pool.query(
+                "INSERT INTO locations (city,region,country,coordinates) VALUES($1,$2,$3,$4) RETURNING *",
+                [city,region,country,coordinates]
+              );
+              res.json(newLocation.rows[0]);
+        
+          }
+        
+            catch (e) {
+                console.error('Error Occurred', e);
+                throw e;
+              }
+          
+       
+        
     
-        res.json(newLocation.rows[0]);
+        
+        })
       } catch (err) {
         console.error(err.message);
       }
 
-
+  
 };
 
 exports.updateLocation =  async (req,res) => {
@@ -125,6 +144,27 @@ exports.updateLocation =  async (req,res) => {
     }
   };
 
+
+  exports.deleteValidation =  async (req,res) => {
+    try {
+      const { id } = req.params;
+      const select = await pool.query("SELECT * FROM listing WHERE location_id = $1", [
+        id
+      ])
+
+      if (select.rows.length === 0) {
+        return res.json(true);
+      }
+      else{
+        return res.json(false);
+      }
+     
+  
+    
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
 
 
 

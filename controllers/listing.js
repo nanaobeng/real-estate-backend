@@ -230,7 +230,7 @@ exports.getListing =  async (req,res) => {
 
   };
 
-  exports.clientRequest =  async (req,res) => {
+  exports.listingRequest =  async (req,res) => {
     try {
         
         const { listing_id,firstname,lastname,title,email,phone } = req.body.values;
@@ -238,10 +238,30 @@ exports.getListing =  async (req,res) => {
 
         const newRequests = await pool.query(
           "INSERT INTO listing_requests (listing_id,firstname,lastname,title,email,phone,status,client_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
-          [listing_id,firstname,lastname,title,email,phone,"pending","client"]
+          [parseInt(listing_id),firstname,lastname,title,email,phone,"pending","client"]
         );
     
         res.json(newRequests.rows[0]);
+      } catch (err) {
+        console.error(err.message);
+      }
+
+
+};
+
+
+exports.clientRequest =  async (req,res) => {
+    try {
+        
+        const { firstname,lastname,title,email,phone,sale_price,rent_price,isRent,isSale,comment,rooms,property_type,location} = req.body.values;
+        
+
+        const newClientRequest = await pool.query(
+          "INSERT INTO client_requests (firstname,lastname,title,email,phone,available_for_sale,available_for_rent,sale_price,rent_price,client_message,bedrooms,property_type,status,property_location) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *",
+          [firstname,lastname,title,email,phone,isSale,isRent,sale_price,rent_price,comment,rooms,property_type,'pending',location]
+        );
+    
+        res.json(newClientRequest.rows[0]);
       } catch (err) {
         console.error(err.message);
       }
