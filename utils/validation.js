@@ -8,15 +8,15 @@ module.exports = function(req, res, next) {
     if (req.path === "/register") {
       
       if (![email,  password].every(Boolean)) {
-        return res.json("Missing Credentials");
+        return res.json({error:"Missing Credentials"});
       } else if (!validEmail(email)) {
-        return res.json("Invalid Email");
+        return res.json({error:"Invalid Email"});
       }
     } else if (req.path === "/login") {
       if (![email, password].every(Boolean)) {
-        return res.json("Missing Credentials");
+        return res.json({error:"Missing Credentials"});
       } else if (!validEmail(email)) {
-        return res.json("Invalid Email");
+        return res.json({error:"Invalid Email Format"});
       }
     }
   

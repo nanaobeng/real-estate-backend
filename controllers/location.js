@@ -54,7 +54,10 @@ exports.addLocation =  async (req,res) => {
 exports.updateLocation =  async (req,res) => {
     try {
       const { id } = req.params;
-      const { city,region,country,coordinates } = req.body;
+      let form = new formidable.IncomingForm();
+      form.parse(req, async (err, fields) => {
+      const { city,region,country,coordinates } = fields;
+      console.log(fields)
       const select = await pool.query("SELECT * FROM locations WHERE location_id = $1", [
         id
       ])
@@ -68,7 +71,7 @@ exports.updateLocation =  async (req,res) => {
       );
   
       res.json("Location was updated!");
-      
+      })
     } catch (err) {
       console.error(err.message);
     }
@@ -168,4 +171,16 @@ exports.updateLocation =  async (req,res) => {
 
 
 
+  exports.countLocations =  async (req,res) => {
+    try {
+       
+      const select = await pool.query("SELECT COUNT(*) FROM locations ")
+
+     
+    
   
+      res.json(select.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };

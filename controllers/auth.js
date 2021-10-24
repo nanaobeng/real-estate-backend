@@ -40,6 +40,7 @@ exports.register =  async (req,res) => {
 exports.login =  async (req,res) => {
 
     const { email, password } = req.body;
+  
 
     try {
       const user = await pool.query("SELECT * FROM administrators WHERE email = $1", [
@@ -47,27 +48,52 @@ exports.login =  async (req,res) => {
       ]);
   
       if (user.rows.length === 0) {
-        return res.status(401).json("Invalid Credentials");
+        return res.status(401).json({error:"Invalid Credentials"});
       }
   
       const validPassword = await bcrypt.compare(
         password,
         user.rows[0].passcode
       );
-  
+     
       if (!validPassword) {
-        return res.status(401).json("Invalid Credentials");
+       
+        return res.status(401).json({error:"Invalid Credentials"});
       }
-      const jwtToken = jwtGenerator(user.rows[0].user_id);
+      const jwtToken = jwtGenerator(user.rows[0].user_id,user.rows[0].email);
       return res.json({ jwtToken });
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server error");
+      return res.status(401).json({
+        error: "Invalid Credentials"
+    });
     }
 
 
 
 };
+
+
+exports.deleteAccount =  async (req,res) => {
+  try {
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM administrators WHERE user_id = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Account does not exist!`);
+    }
+    const deleteAdmin = await pool.query("DELETE FROM administrators WHERE user_id = $1", [
+      id
+    ]);
+    res.json("Account was deleted!");
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+
 
 exports.isAuth =  async (req,res) => {
 
@@ -78,3 +104,5 @@ exports.isAuth =  async (req,res) => {
         res.status(500).send("Server error");
       }
 };
+
+

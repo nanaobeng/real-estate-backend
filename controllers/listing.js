@@ -10,17 +10,60 @@ const formidable = require('formidable');
 const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk')
+require("dotenv").config();
 const s3 = new AWS.S3({
-    accessKeyId:process.env.AWS_ACCESS_KEY,
-        secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY
+    accessKeyId:'AKIA4D3AJ5CEEEMCQDHO',
+        secretAccessKey:'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'
 
 })
 
-require("dotenv").config();
+
+
+exports.addImages =  async (req,res) => {
+  try {
+       
+    let form = new formidable.IncomingForm();
+    
+    form.keepExtensions = true;
+    form.multiples = true
+    form.parse(req, async (err, fields, files ) => {
+        if (err) {
+            return res.status(400).json({
+                error: 'Image could not be uploaded'
+            });
+        }
+        else{
+         
+            const { listing_id
+            } = fields;
+            let l_id = ''
+            let image = ''
+     
+
+            
+            
+        }
+      
+
+    })
+}
+catch (err) {
+       console.error(err.message);
+      }
+
+
+    
+    
+
+};
+
+
+
 exports.addListing =  async (req,res) => {
     try {
-        console.log(process.env.AKIAZUG3G6F7YWX5YIRY)
+    let thumbnail_image = ''
     let form = new formidable.IncomingForm();
+    
     form.keepExtensions = true;
     form.multiples = true
     form.parse(req, async (err, fields, files) => {
@@ -31,82 +74,132 @@ exports.addListing =  async (req,res) => {
         }
         else{
          
-            const { listing_title,description,property_type,
-                rooms,has_parking,available_for_sale,available_for_rent,
-                 sale_price,location_id
+            const { listing_title,description,property_type,purchase_type,
+                rooms,has_parking,has_gym,has_pool,is_furnished,off_plan,
+                 price,location_id,bathrooms,images,imageCount
              
              
             } = fields;
             let l_id = ''
-            let image = ''
-
-
+            
+            console.log(files.images)
+          
+        
+           
 
             const select = await pool.query("SELECT * FROM listing WHERE listing_title = $1", [
                         listing_title
                       ])
             
                       if (select.rows.length > 0) {
-                        return res.status(401).json(`${listing_title} already exists`);
+                        return res.status(401).json({error:`${listing_title} already exists`});
                       }
-            
 
-        //insert listing
-
-        const newLocation = await pool.query(
-                  "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,has_parking,available_for_sale,available_for_rent,sale_price,location_id,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *",
-                  [listing_title,'test thumb' ,description,property_type,
-                    rooms,has_parking,available_for_sale,available_for_rent,
-                    sale_price,location_id,'pending']
-                );
-            
-                res.json(newLocation.rows[0]);
-                l_id = newLocation.rows[0].listing_id
-             
-
-
-            for(var i = 0; i<files.image.length ; i++){
                     
-        let fileName = files.image[i].path
-        console.log(fileName)
+                      let fileName = files.thumbnail.path
+       
 
             
-        // Read content from the file
-        const fileContent = fs.readFileSync(fileName);
-    
-        // Setting up S3 upload parameters
-        const params = {
-            Bucket: 'swiftwebapp',
-            Key: files.image[i].name, // File name you want to save as in S3
-            Body: fileContent
-        };
+                      // Read content from the file
+                      const fileContent = fs.readFileSync(fileName);
+                  
+                      // Setting up S3 upload parameters
+                      const params = {
+                          Bucket: 'swiftimages',
+                          Key: files.thumbnail.name, // File name you want to save as in S3
+                          Body: fileContent
+                      };
+              
+                      
+                  
+                      // Uploading files to the bucket
+                      s3.upload(params, async function(err, data) {
+                        try{
+                          if (err) {
+                              throw err;
+                          }
+              
+                          console.log(`File uploaded successfully. ${data.Location}`);
+                          
+                          // uploading to postgress
+                          // console.log(`listing_title : ${} , thumbnail : ${} , description property_type,rooms,bathrooms,has_parking,price,location_id,status,purchase_type,has_gym,has_pool,offplan,is_furnished`)
+                          const newLocation = await pool.query(
+                            "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,bathrooms,has_parking,price,location_id,status,purchase_type,has_gym,has_pool,offplan,is_furnished) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *",
+                            [listing_title,data.Location,description,property_type,rooms,bathrooms,parseInt(has_parking),price,location_id,'inactive',purchase_type,parseInt(has_gym),parseInt(has_pool),parseInt(off_plan),parseInt(is_furnished)]
+                          );
+                      
+                          res.json(newLocation.rows[0]);
+                          console.log('dsds')
+                          console.log(newLocation.rows[0])
 
-        
-    
-        // Uploading files to the bucket
-        s3.upload(params, async function(err, data) {
-          try{
-            if (err) {
-                throw err;
-            }
+                          l_id = newLocation.rows[0].listing_id
+                          console.log(newLocation.rows[0].listing_id)
 
-            console.log(`File uploaded successfully. ${data.Location}`);
+
+                         
+        for(var i = 0; i<files.images.length; i++){
+      
+          let fileName = files.images[i].path
+
+       
+    
+
+         
+     // Read content from the files
+     const fileContent = fs.readFileSync(fileName);
+ 
+     // Setting up S3 upload parameters
+     const params = {
+         Bucket: 'swiftimages',
+         Key: files.images[i].name, // File name you want to save as in S3
+         Body: fileContent
+     };
+
+     
+ 
+     // Uploading files to the bucket
+     s3.upload(params, async function(err, data) {
+       try{
+         if (err) {
+             throw err;
+         }
+
+         console.log(`File uploaded successfully. ${data.Location}`);
+         
+         // uploading to postgress
+         const newImage = await pool.query(
+                   "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
+                   [l_id,(data.Location)]
+                 );
+
+                 res.json(newImage.rows[0]);      
+     
+         }
+         catch (err) {
+             console.error(err.message);
+             return;
+            } 
+     });
+         }
+                          
+              
+                                    
+                      
+                          }
+                          catch (err) {
+                              console.error(err.message);
+                              return;
+                             } 
+                      });
             
-            // uploading to postgress
-            const newImage = await pool.query(
-                      "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
-                      [l_id,(data.Location)]
-                    );
+            
+            
 
-                    res.json(newImage.rows[0]);      
         
-            }
-            catch (err) {
-                console.error(err.message);
-                return;
-               } 
-        });
-            }
+        
+       
+ 
+  
             
         }
       
@@ -127,7 +220,7 @@ catch (err) {
 
 exports.getListing =  async (req,res) => {
     try {
-        console.log(process.env.AWS_ACCESS_KEY)
+       
       const { id } = req.params;
       const select = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
         id
@@ -163,6 +256,10 @@ exports.getListing =  async (req,res) => {
 
 
   
+
+
+
+  
   exports.deleteListing =  async (req,res) => {
     try {
       const { id } = req.params;
@@ -188,22 +285,27 @@ exports.getListing =  async (req,res) => {
     let order = 'DESC';
     let sortBy =  'listing_id';
     let limit = req.body.limit ? parseInt(req.body.limit) : 6;
+
+    let has_parking = req.body.filters.has_parking ? parseInt(req.body.filters.has_parking) : 0;
+    let has_gym = req.body.filters.has_gym ? parseInt(req.body.filters.has_gym) : 0;
+    let has_pool = req.body.filters.has_pool ? parseInt(req.body.filters.has_pool) : 0;
+    let off_plan = req.body.filters.off_plan ? parseInt(req.body.filters.off_plan) : 0;
+    console.log(off_plan)
+    let is_furnished = req.body.is_furnished ? parseInt(req.body.is_furnished) : 0;
  
     let location = req.body.filters.location ? parseInt(req.body.filters.location) : false;
     let property_type = req.body.filters.property_type ? req.body.filters.property_type : false;
-    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : 'sale_price';
+    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : 'sale';
     let price_min = req.body.filters.price_min ? parseInt(req.body.filters.price_min) : 0;
     let price_max = req.body.filters.price_max ? parseInt(req.body.filters.price_max) : 3500;
-    let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 5;
+    let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 0;
 
     let query = 'SELECT * FROM listing WHERE ';
     if(purchase_type){
-        if(purchase_type == "sale_price"){
-            query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} AND  available_for_sale `
-        }
-        else{
-            query = query + `${purchase_type} BETWEEN ${price_min} AND ${price_max} AND  available_for_rent  `
-        }
+     
+            query = query + `price BETWEEN ${price_min} AND ${price_max} AND purchase_type = '${purchase_type}' `
+        
+      
        
     }
 
@@ -211,9 +313,35 @@ exports.getListing =  async (req,res) => {
         query = query + ` AND property_type = '${property_type}'  `
     }
 
-    if(rooms){
+    if(off_plan == 1){
+      query = query + ` AND offplan  `
+  }
+
+  if(has_parking == 1){
+    query = query + ` AND has_parking  `
+}
+
+if(has_pool == 1){
+  query = query + ` AND has_pool  `
+}
+
+if(has_gym == 1){
+  query = query + ` AND has_gym  `
+}
+
+if(is_furnished == 1){
+  query = query + ` AND is_furnished  `
+}
+
+    if(rooms != 0){
+      
         query = query + ` AND rooms = ${rooms} `
     }
+
+    if(rooms == 5){
+      
+      query = query + ` AND rooms > 4 `
+  }
 
     if(location){
         query = query + ` AND location_id = ${location} `
@@ -234,7 +362,7 @@ exports.getListing =  async (req,res) => {
     try {
         
         const { listing_id,firstname,lastname,title,email,phone } = req.body.values;
-        
+       
 
         const newRequests = await pool.query(
           "INSERT INTO listing_requests (listing_id,firstname,lastname,title,email,phone,status,client_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
@@ -267,4 +395,306 @@ exports.clientRequest =  async (req,res) => {
       }
 
 
+}
+
+exports.getClientRequest =  async (req,res) => {
+  try {
+     
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM client_requests WHERE cid = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Request does not exist!`);
+    }
+    const newList = await pool.query("SELECT * FROM client_requests WHERE cid = $1", [
+      id
+    ]);
+
+    res.json(newList.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.countListing =  async (req,res) => {
+    try {
+       
+      const select = await pool.query("SELECT COUNT(*) FROM listing ")
+
+     
+    
+  
+      res.json(select.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+
+
+  exports.increaseListingCount =  async (req,res) => {
+ 
+    try {
+    
+      const { id } = req.params;
+      console.log(req.body.title)
+      console.log(req.body.location)
+      let title = req.body.title 
+      let location = req.body.location 
+
+      const current_date = ((new Date()).getMonth() + 1) +'/'+ ((new Date()).getFullYear())
+
+     
+      
+      const select = await pool.query("SELECT * FROM listing_views WHERE listing_id = $1 AND period = $2", [
+        parseInt(id),current_date
+      ])
+
+  
+      if (select.rows.length === 0) {
+        const newRow = await pool.query("INSERT INTO listing_views (listing_id,period,view_count,city,title) VALUES($1,$2,$3,$4,$5) RETURNING *", [
+          parseInt(id),current_date,1,location,title
+        ])
+
+        res.json(newRow.rows[0]);
+      }
+      else{
+        const increment = select.rows[0].view_count + 1
+       
+        const updateRow = await pool.query("UPDATE listing_views SET view_count = $1 , city = $2 , title = $3 WHERE listing_id = $4 AND period = $5" ,[increment,location,title,parseInt(id),current_date])
+
+        res.json({"success":"Listing was updated"});
+      }
+  
+      
+    } catch (err) {
+      console.error(err.message);
+    }
+
+  
+};
+
+
+exports.getListingViews =  async (req,res) => {
+  try {
+    const current_date = ((new Date()).getMonth() + 1) +'/'+ ((new Date()).getFullYear())
+    console.log('select')
+    const select = await pool.query(`SELECT * FROM listing_views`)
+    // const select = await pool.query(`SELECT listing_id , view_count FROM listing_views WHERE period = $1 ORDER BY view_count ASC LIMIT 5 ` ,[current_date ])
+
+    console.log(select)
+   
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.countFilteredListing =  async (req,res) => {
+  try {
+     
+
+
+    let has_parking = req.body.filters.has_parking ? parseInt(req.body.filters.has_parking) : 0;
+    let has_gym = req.body.filters.has_gym ? parseInt(req.body.filters.has_gym) : 0;
+    let has_pool = req.body.filters.has_pool ? parseInt(req.body.filters.has_pool) : 0;
+    let off_plan = req.body.filters.off_plan ? parseInt(req.body.filters.off_plan) : 0;
+    console.log(off_plan)
+    let is_furnished = req.body.is_furnished ? parseInt(req.body.is_furnished) : 6;
+ 
+    let location = req.body.filters.location ? parseInt(req.body.filters.location) : false;
+    let property_type = req.body.filters.property_type ? req.body.filters.property_type : false;
+    let purchase_type = req.body.filters.purchase_type ? req.body.filters.purchase_type : 'sale';
+    let price_min = req.body.filters.price_min ? parseInt(req.body.filters.price_min) : 0;
+    let price_max = req.body.filters.price_max ? parseInt(req.body.filters.price_max) : 3500;
+    let rooms = req.body.filters.rooms ? parseInt(req.body.filters.rooms) : 5;
+
+    let query = 'SELECT * FROM listing WHERE ';
+    if(purchase_type){
+ 
+            query = query + `price BETWEEN ${price_min} AND ${price_max} AND 
+            purchase_type =  '${purchase_type}' `
+        
+       
+       
+    }
+
+    if(property_type){
+        query = query + ` AND property_type = '${property_type}'  `
+    }
+
+    if(off_plan == 1){
+      query = query + ` AND offplan  `
+  }
+
+  if(has_parking == 1){
+    query = query + ` AND has_parking  `
+}
+
+if(has_pool == 1){
+  query = query + ` AND has_pool  `
+}
+
+if(has_gym == 1){
+  query = query + ` AND has_gym  `
+}
+
+if(is_furnished == 1){
+  query = query + ` AND is_furnished  `
+}
+
+    if(rooms != 0){
+      
+        query = query + ` AND rooms = ${rooms} `
+    }
+
+    if(location){
+        query = query + ` AND location_id = ${location} `
+    }
+    console.log('here')
+    console.log(query)
+    const select = await pool.query(query)
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.getClientRequests =  async (req,res) => {
+  try {
+    
+    const select = await pool.query("SELECT * FROM listing_requests")
+
+  
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+exports.getListRequest =  async (req,res) => {
+  try {
+     
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM listing_requests WHERE r_id = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Request does not exist!`);
+    }
+    const newList = await pool.query("SELECT * FROM listing_requests WHERE r_id = $1", [
+      id
+    ]);
+
+    res.json(newList.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+exports.changeListingStatus =  async (req,res) => {
+ 
+  try {
+  
+    const { id } = req.params;
+
+   
+    
+    
+    
+
+     
+      const updateRow = await pool.query("UPDATE listing_requests SET status = $1 WHERE r_id = $2 " ,['read',id])
+
+      res.json({"success":"Listing Request was updated"});
+   
+    
+  } catch (err) {
+    console.error(err.message);
+  }
+
+
+};
+
+
+exports.getListingImages =  async (req,res) => {
+  try {
+     
+    const { id } = req.params;
+    const select = await pool.query("SELECT url FROM images WHERE listing_id = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Request does not exist!`);
+    }
+    const newList = await pool.query("SELECT url FROM images WHERE listing_id = $1", [
+      id
+    ]);
+
+    res.json(newList.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.getListingViews =  async (req,res) => {
+  try {
+    const current_date = ((new Date()).getMonth()) +'/'+ ((new Date()).getFullYear())
+      
+    const select = await pool.query(`SELECT listing_id , view_count FROM listing_views WHERE period = $1 ORDER BY view_count ASC LIMIT 5 ` ,[current_date])
+    
+
+   
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+
+exports.test =  async (req,res) => {
+  try {
+       
+    const current_date = ((new Date()).getMonth() + 1) +'/'+ ((new Date()).getFullYear())
+    console.log('select')
+   
+    const select = await pool.query(`SELECT listing_id , view_count FROM listing_views WHERE period = $1 ORDER BY view_count ASC LIMIT 5 ` ,[current_date ])
+
+ 
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.getFourListings =  async (req,res) => {
+  try {
+     
+    const select = await pool.query("SELECT * FROM listing ORDER BY date_created LIMIT 4 ")
+
+   
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
 };

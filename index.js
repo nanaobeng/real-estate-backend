@@ -13,9 +13,17 @@ app.use(express.json());
 const authRoutes = require('./routes/auth')
 const locationRoutes = require('./routes/location')
 const listingRoutes = require('./routes/listing')
+const messagesRoutes = require('./routes/messages')
+const auditRoutes = require('./routes/audit')
+const subscriptionRoutes = require('./routes/subscription')
+const dashboardRoutes = require('./routes/dashboard')
 app.use(authRoutes)
 app.use(locationRoutes)
 app.use(listingRoutes)
+app.use(messagesRoutes)
+app.use(auditRoutes)
+app.use(subscriptionRoutes)
+app.use(dashboardRoutes)
 
 
 
