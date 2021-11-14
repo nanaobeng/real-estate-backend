@@ -36,13 +36,8 @@ exports.getMessages =  async (req,res) => {
       let read = req.body.read;
       let unread = req.body.unread;
       let query = ""
-      if(read){
-          query = query + " WHERE status = 'read' "
-      }
-      else{
-        query = query + " WHERE status = 'unread' "  
-      }
-      const select = await pool.query(`SELECT * FROM messages ${query} `)
+      
+      const select = await pool.query(`SELECT * FROM messages `)
 
      
     
@@ -77,3 +72,27 @@ exports.getMessages =  async (req,res) => {
     }
   };
   
+
+  exports.changeMessageStatus =  async (req,res) => {
+ 
+    try {
+    
+      const { id } = req.params;
+  
+     
+      
+      
+      
+  
+       
+        const updateRow = await pool.query("UPDATE messages SET status = $1 WHERE message_id = $2 " ,['read',id])
+  
+        res.json({"success":"Message was updated"});
+     
+      
+    } catch (err) {
+      console.error(err.message);
+    }
+  
+  
+  };

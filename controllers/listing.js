@@ -125,7 +125,7 @@ exports.addListing =  async (req,res) => {
                           // console.log(`listing_title : ${} , thumbnail : ${} , description property_type,rooms,bathrooms,has_parking,price,location_id,status,purchase_type,has_gym,has_pool,offplan,is_furnished`)
                           const newLocation = await pool.query(
                             "INSERT INTO listing (listing_title,thumbnail,description,property_type,rooms,bathrooms,has_parking,price,location_id,status,purchase_type,has_gym,has_pool,offplan,is_furnished) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *",
-                            [listing_title,data.Location,description,property_type,rooms,bathrooms,parseInt(has_parking),price,location_id,'inactive',purchase_type,parseInt(has_gym),parseInt(has_pool),parseInt(off_plan),parseInt(is_furnished)]
+                            [listing_title,data.Location,description,property_type,rooms,bathrooms,(has_parking === 'true' || has_parking === 1 || has_parking === "1" ? 1 : 0),price,location_id,'inactive',purchase_type,(has_gym === 'true' || has_gym === 1 || has_gym === "1" ? 1 : 0),(has_pool === 'true' || has_pool === 1 || has_pool === "1" ? 1 : 0),(off_plan === 'true' || off_plan === 1 || off_plan === "1" ? 1 : 0),(is_furnished === 'true' || is_furnished === 1 || is_furnished === "1" ? 1 : 0)]
                           );
                       
                           res.json(newLocation.rows[0]);
@@ -263,16 +263,16 @@ exports.getListing =  async (req,res) => {
   exports.deleteListing =  async (req,res) => {
     try {
       const { id } = req.params;
-      const select = await pool.query("SELECT * FROM listing WHERE listing_id = $1", [
-        id
-      ])
+      query = `SELECT * FROM listing WHERE listing_id = ${req.params.id}`
+      delete_query = `DELETE FROM listing WHERE listing_id = ${req.params.id}` 
+      console.log(query)
+      const select = await pool.query(query)
 
       if (select.rows.length === 0) {
-        return res.status(401).json(`Listing does not exist!`);
+        return res.status(401).json({error:`Listing does not exist!`});
       }
-      const deleteListing = await pool.query("DELETE FROM listing WHERE listing_id = $1", [
-        id
-      ]);
+      
+      const deleteListing = await pool.query(delete_query);
       res.json("Listing was deleted!");
     } catch (err) {
       console.log(err.message);
@@ -631,14 +631,14 @@ exports.getListingImages =  async (req,res) => {
   try {
      
     const { id } = req.params;
-    const select = await pool.query("SELECT url FROM images WHERE listing_id = $1", [
+    const select = await pool.query("SELECT url,image_id FROM images WHERE listing_id = $1", [
       id
     ])
 
     if (select.rows.length === 0) {
       return res.status(401).json(`Request does not exist!`);
     }
-    const newList = await pool.query("SELECT url FROM images WHERE listing_id = $1", [
+    const newList = await pool.query("SELECT url, image_id FROM images WHERE listing_id = $1", [
       id
     ]);
 
@@ -673,7 +673,7 @@ exports.test =  async (req,res) => {
     const current_date = ((new Date()).getMonth() + 1) +'/'+ ((new Date()).getFullYear())
     console.log('select')
    
-    const select = await pool.query(`SELECT listing_id , view_count FROM listing_views WHERE period = $1 ORDER BY view_count ASC LIMIT 5 ` ,[current_date ])
+    const select = await pool.query(`SELECT * FROM listing_views WHERE period = $1 ORDER BY view_count ASC LIMIT 5 ` ,[current_date ])
 
  
   
@@ -697,4 +697,247 @@ exports.getFourListings =  async (req,res) => {
   } catch (err) {
     console.error(err.message);
   }
+};
+
+
+exports.deleteListingImage =  async (req,res) => {
+  try {
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM images WHERE image_id = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Image does not exist!`);
+    }
+    const deleteListing = await pool.query("DELETE FROM images WHERE image_id = $1", [
+      id
+    ]);
+    res.json("Listing Image was deleted!");
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+
+exports.updateListing =  async (req,res) => {
+  try {
+    const { id } = req.params;
+    let form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields,files) => {
+
+      if (err) {
+        return res.status(400).json({
+            error: 'Image could not be uploaded'
+        });
+    }
+
+    else{
+
+      const { listing_id,listing_title,description,property_type,purchase_type,
+        rooms,has_parking,has_gym,has_pool,is_furnished,off_plan,
+         price,location_id,bathrooms,images,imageCount
+     
+     
+    } = fields;
+    let l_id = ''
+    
+
+    let query = 'UPDATE listing SET '
+    
+    if(listing_title){
+      query = query + `listing_title = '${fields.listing_title}' ` 
+    }
+    if(description){
+      query = query + ` , description = '${fields.description}' ` 
+    }
+    if(property_type){
+      query = query + ` , property_type = '${fields.property_type}' ` 
+    }
+    if(purchase_type){
+      query = query + ` , purchase_type = '${fields.purchase_type}' ` 
+    }
+    if(rooms){
+      query = query + ` , rooms = ${fields.rooms} ` 
+    }
+    if(has_parking){
+      query = query + ` , has_parking = ${fields.has_parking === 1 ? true : false} ` 
+    }
+    if(has_gym){
+      query = query + ` , has_gym = ${fields.has_gym === 1 ? true : false} ` 
+    }
+    if(has_pool){
+      query = query + ` , has_pool = ${fields.has_pool === 1 ? true : false} ` 
+    }
+    if(is_furnished){
+      query = query + ` , is_furnished = ${fields.is_furnished === 1 ? true : false} ` 
+    }
+
+    if(off_plan){
+      query = query + ` , off_plan = ${fields.off_plan === 1 ? true : false} ` 
+    }
+    if(is_furnished){
+      query = query + ` , is_furnished = ${fields.is_furnished === 1 ? true : false} ` 
+    }
+    if(price){
+      query = query + ` , price = ${fields.price} ` 
+    }
+    if(location_id){
+      query = query + ` , location_id = ${fields.location_id} ` 
+    }
+    if(bathrooms){
+      query = query + ` , bathrooms = ${fields.bathrooms} ` 
+    }
+    
+      
+    
+   
+    console.log(query)
+
+    if(files.images){
+      for(var i = 0; i<files.images.length; i++){
+      
+        let fileName = files.images[i].path
+
+     
+  
+
+       
+   // Read content from the files
+   const fileContent = fs.readFileSync(fileName);
+
+   // Setting up S3 upload parameters
+   const params = {
+       Bucket: 'swiftimages',
+       Key: files.images[i].name, // File name you want to save as in S3
+       Body: fileContent
+   };
+
+   
+
+   // Uploading files to the bucket
+   s3.upload(params, async function(err, data) {
+     try{
+       if (err) {
+           throw err;
+       }
+
+       console.log(`File uploaded successfully. ${data.Location}`);
+       
+       // uploading to postgress
+       const newImage = await pool.query(
+                 "INSERT INTO images(listing_id,url) VALUES($1,$2) RETURNING *",
+                 [fields.listing_id,(data.Location)]
+               );
+
+               res.json(newImage.rows[0]);      
+   
+       }
+       catch (err) {
+           console.error(err.message);
+           return;
+          } 
+   });
+       }
+         
+      
+    }
+   
+
+
+    if(files.thumbnail){
+      let fileName = files.thumbnail.path
+
+      const fileContent = fs.readFileSync(fileName);
+                  
+                      // Setting up S3 upload parameters
+                      const params = {
+                          Bucket: 'swiftimages',
+                          Key: files.thumbnail.name, // File name you want to save as in S3
+                          Body: fileContent
+                      };
+              
+                      
+                  
+                      // Uploading files to the bucket
+                      s3.upload(params, async function(err, data) {
+                        try{
+                          if (err) {
+                              throw err;
+                          }
+              
+                          console.log(`File uploaded successfully. ${data.Location}`);
+                          query = query + ` , thumbnail = '${data.Location}' ` 
+                          query = query + ` WHERE listing_id = ${fields.listing_id} ` 
+                          console.log(query)
+       const updateListing = await pool.query(
+        query);
+  
+      res.json("Location was updated!");
+
+                        }
+                        catch (err) {
+                          console.error(err.message);
+                          return;
+                         } 
+
+                        })
+
+      
+    }
+    else{
+      query = query + ` WHERE listing_id = ${fields.listing_id} ` 
+      const updateListing = await pool.query(query);
+  
+      res.json("Listing was updated!");
+    }
+
+    
+
+    }
+    
+    })
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+exports.getAllClientRequests =  async (req,res) => {
+  try {
+     
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM client_requests")
+
+    
+   
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+
+exports.changeClientRequestStatus =  async (req,res) => {
+ 
+  try {
+  
+    const { id } = req.params;
+
+   
+    
+    
+    
+
+     
+      const updateRow = await pool.query("UPDATE client_requests SET status = $1 WHERE cid = $2 " ,['read',id])
+
+      res.json({"success":"Client Request was updated"});
+   
+    
+  } catch (err) {
+    console.error(err.message);
+  }
+
+
 };
