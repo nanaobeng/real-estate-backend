@@ -13,12 +13,12 @@ require("dotenv").config();
 exports.clientMessage =  async (req,res) => {
     try {
         
-        const { firstname,lastname,title,email,phone,message} = req.body.values;
+        const { fullname,email,phone,message} = req.body.values;
         
 
         const newClientMessage = await pool.query(
-          "INSERT INTO messages(firstname,lastname,title,email,phone,client_message,status) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-          [firstname,lastname,title,email,phone,message,'unread']
+          "INSERT INTO messages(title,firstname,lastname,fullname,email,phone,client_message,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+          ['','','',fullname,email,phone,message,'unread']
         );
     
         res.json(newClientMessage.rows[0]);

@@ -361,12 +361,12 @@ if(is_furnished == 1){
   exports.listingRequest =  async (req,res) => {
     try {
         
-        const { listing_id,firstname,lastname,title,email,phone } = req.body.values;
+        const { fullname,listing_id,firstname,lastname,title,email,phone } = req.body.values;
        
 
         const newRequests = await pool.query(
-          "INSERT INTO listing_requests (listing_id,firstname,lastname,title,email,phone,status,client_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
-          [parseInt(listing_id),firstname,lastname,title,email,phone,"pending","client"]
+          "INSERT INTO listing_requests (fullname,listing_id,firstname,lastname,title,email,phone,status,client_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
+          [fullname,parseInt(listing_id),firstname,lastname,title,email,phone,"pending","client"]
         );
     
         res.json(newRequests.rows[0]);
