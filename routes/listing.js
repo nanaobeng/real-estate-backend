@@ -6,7 +6,7 @@ const pool = require("../db");
 const jwtGenerator = require("../utils/jwtGenerator");
 const authorize = require("../utils/authorize");
 
-const {addListing,getListing,deleteListing, getListings, listingBySeach, clientRequest, listingRequest, countListing, getClientRequest, increaseListingCount, getListingViews, countFilteredListing, getClientRequests,getListRequest, changeListingStatus, getListingImages, test, getFourListings, deleteListingImage, updateListing, getAllClientRequests,changeClientRequestStatus} = require('../controllers/listing');
+const {addListing,getListing,deleteListing, getListings, listingBySeach, clientRequest, listingRequest, countListing, getClientRequest, increaseListingCount, getListingViews, countFilteredListing, getClientRequests,getListRequest, changeListingStatus, getListingImages, test, getFourListings, deleteListingImage, updateListing, getAllClientRequests,changeClientRequestStatus, getPropertyRequest,propertyRequest,viewPropertyRequest,changePropertyRequestStatus, getListingRequestImages} = require('../controllers/listing');
 const { isAuth } = require("../controllers/auth");
 
 
@@ -33,8 +33,11 @@ router.get("/listing/images/:id",getListingImages);
 router.get("/listings/home",getFourListings);
 router.post("/listings/client/requests/status/:id", changeClientRequestStatus);
 
-
-
+router.post("/listings/property/request", propertyRequest);
+router.get("/listings/property/requests", viewPropertyRequest);
+router.get("/listings/property/requests/:id", getPropertyRequest);
+router.post("/listings/property/request/status/:id", changePropertyRequestStatus);
+router.get("/listings/property/requests/images/:id", getListingRequestImages);
 
 
 

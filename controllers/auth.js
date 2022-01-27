@@ -9,8 +9,9 @@ const jwtGenerator = require("../utils/jwtGenerator");
 const authorize = require("../utils/authorize");
 
 exports.register =  async (req,res) => {
+    
     const { email, password } = req.body;
-
+   
   try {
     const user = await pool.query("SELECT * FROM administrators WHERE email = $1", [
       email
@@ -26,12 +27,12 @@ exports.register =  async (req,res) => {
 
     let newUser = await pool.query(
       "INSERT INTO administrators (firstname, lastname,email, passcode,status,resetlink) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      ['rudy','dadey', email, bcryptPassword,'inactive','testlink']
+      [firstname,lastname, email, bcryptPassword,'actives','testlink']
     );
 
-    const jwtToken = jwtGenerator(newUser.rows[0].user_id);
-
-    return res.json({ jwtToken });
+    
+    console.log('success')
+    return res.json({ success: 'Administrator Account Created' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");

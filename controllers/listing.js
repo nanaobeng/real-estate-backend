@@ -19,46 +19,6 @@ const s3 = new AWS.S3({
 
 
 
-exports.addImages =  async (req,res) => {
-  try {
-       
-    let form = new formidable.IncomingForm();
-    
-    form.keepExtensions = true;
-    form.multiples = true
-    form.parse(req, async (err, fields, files ) => {
-        if (err) {
-            return res.status(400).json({
-                error: 'Image could not be uploaded'
-            });
-        }
-        else{
-         
-            const { listing_id
-            } = fields;
-            let l_id = ''
-            let image = ''
-     
-
-            
-            
-        }
-      
-
-    })
-}
-catch (err) {
-       console.error(err.message);
-      }
-
-
-    
-    
-
-};
-
-
-
 exports.addListing =  async (req,res) => {
     try {
     let thumbnail_image = ''
@@ -378,24 +338,7 @@ if(is_furnished == 1){
 };
 
 
-exports.clientRequest =  async (req,res) => {
-    try {
-        
-        const { firstname,lastname,title,email,phone,sale_price,rent_price,isRent,isSale,comment,rooms,property_type,location} = req.body.values;
-        
 
-        const newClientRequest = await pool.query(
-          "INSERT INTO client_requests (firstname,lastname,title,email,phone,available_for_sale,available_for_rent,sale_price,rent_price,client_message,bedrooms,property_type,status,property_location) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *",
-          [firstname,lastname,title,email,phone,isSale,isRent,sale_price,rent_price,comment,rooms,property_type,'pending',location]
-        );
-    
-        res.json(newClientRequest.rows[0]);
-      } catch (err) {
-        console.error(err.message);
-      }
-
-
-}
 
 exports.getClientRequest =  async (req,res) => {
   try {
@@ -941,3 +884,227 @@ exports.changeClientRequestStatus =  async (req,res) => {
 
 
 };
+
+
+// ---- Request Properties
+
+exports.propertyRequest =  async (req,res) => {
+  try {
+      
+      const { fullname,email,phone,property_type,budget,purchase_type,location,rooms,comment } = req.body.values;
+     
+
+      const propertyRequests = await pool.query(
+        "INSERT INTO property_requests (fullname,email,phone,property_type,budget,purchase_type,location,rooms,comment,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
+        [fullname,email,phone,property_type,budget,purchase_type,location,rooms,comment,'unread']
+      );
+  
+      res.json(propertyRequests.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+
+
+};
+
+exports.viewPropertyRequest =  async (req,res) => {
+  try {
+       
+    const select = await pool.query("SELECT * FROM property_requests ")
+
+   
+  
+
+    res.json(select.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+exports.getPropertyRequest =  async (req,res) => {
+  try {
+     
+    const { id } = req.params;
+    const select = await pool.query("SELECT * FROM property_requests WHERE property_id = $1", [
+      id
+    ])
+
+    if (select.rows.length === 0) {
+      return res.status(401).json(`Request does not exist!`);
+    }
+    const newList = await pool.query("SELECT * FROM property_requests WHERE property_id = $1", [
+      id
+    ]);
+
+    res.json(newList.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+exports.clientRequest =  async (req,res) => {
+  try {
+    console.log('here o')
+
+  let form = new formidable.IncomingForm();
+ 
+  form.keepExtensions = true;
+  form.multiples = true
+  form.parse(req, async (err, fields, files) => {
+      if (err) {
+          return res.status(400).json({
+              error: 'Image could not be uploaded'
+          });
+      }
+      else{
+       
+          const { fullname,email,phone,price,purchase_type,comment,rooms,property_type,location
+           
+          } = fields;
+          console.log('fields')
+          console.log(fields)
+          let l_id = ''
+          
+          console.log(files.images)
+        
+      
+         
+
+       
+
+                  
+                    
+          const newClientRequest = await pool.query(
+            "INSERT INTO client_requests (fullname,email,phone,price,purchase_type,client_message,bedrooms,property_type,property_location,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *",
+            [fullname,email,phone,price,purchase_type,comment,rooms,property_type,location,'pending']
+          );
+      
+          res.json(newClientRequest.rows[0]);
+          console.log('Request Added')
+          console.log(newClientRequest.rows[0])
+
+          l_id = newClientRequest.rows[0].cid
+          console.log(newClientRequest.rows[0].cid)
+
+
+                       
+      for(var i = 0; i<files.images.length; i++){
+    
+        let fileName = files.images[i].path
+
+     
+  
+
+       
+   // Read content from the files
+   const fileContent = fs.readFileSync(fileName);
+
+   // Setting up S3 upload parameters
+   const params = {
+       Bucket: 'swiftimages',
+       Key: files.images[i].name, // File name you want to save as in S3
+       Body: fileContent
+   };
+
+   
+
+   // Uploading files to the bucket
+   s3.upload(params, async function(err, data) {
+     try{
+       if (err) {
+           throw err;
+       }
+
+       console.log(`File uploaded successfully. ${data.Location}`);
+       
+       // uploading to postgress
+       const newImage = await pool.query(
+                 "INSERT INTO request_images(cid,url) VALUES($1,$2) RETURNING *",
+                 [l_id,(data.Location)]
+               );
+
+               res.json(newImage.rows[0]);      
+   
+       }
+       catch (err) {
+           console.error(err.message);
+           return;
+          } 
+   });
+       }
+                        
+            
+                                  
+                    
+                   
+          
+          
+          
+
+      
+      
+     
+
+
+          
+      }
+    
+
+  })
+}
+catch (err) {
+     console.error(err.message);
+    }
+
+
+  
+  
+
+
+};
+
+exports.changePropertyRequestStatus =  async (req,res) => {
+ 
+    try {
+    
+      const { id } = req.params;
+  
+     
+      
+      
+      
+  
+       
+        const updateRow = await pool.query("UPDATE property_requests SET status = $1 WHERE property_id = $2 " ,['read',id])
+  
+        res.json({"success":"Property Request was updated"});
+     
+      
+    } catch (err) {
+      console.error(err.message);
+    }
+  
+  
+  };
+  
+
+  exports.getListingRequestImages =  async (req,res) => {
+    try {
+       
+      const { id } = req.params;
+      const select = await pool.query("SELECT url,image_id FROM request_images WHERE cid = $1", [
+        id
+      ])
+  
+      if (select.rows.length === 0) {
+        return res.status(401).json(`Request does not exist!`);
+      }
+      const newList = await pool.query("SELECT url, image_id FROM request_images WHERE cid = $1", [
+        id
+      ]);
+  
+      res.json(newList.rows);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };

@@ -11,57 +11,42 @@ require("dotenv").config();
 
 
 exports.addAdmin =  async (req,res) => {
-    try {
-        let form = new formidable.IncomingForm();
-        form.parse(req, async (err, fields) => {
-           
-            const { email, password ,firstname,lastname} = fields;
-            console.log('----')
-            console.log(fields)
-            console.log('----')
-       
-            const user = await pool.query("SELECT * FROM administrators WHERE email = $1", [
-                email
-              ])
-          
-              if (user.rows.length > 0) {
-                return res.status(401).json("User already exist!");
-              }
-
-          try{
-            const salt = await bcrypt.genSalt(10);
-  
-            const bcryptPassword = await bcrypt.hash(password, salt);
-        
-            let newUser = await pool.query(
-              "INSERT INTO administrators (firstname, lastname,email, passcode,status,resetlink) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-              [firstname,lastname, email, bcryptPassword,'active','testlink']
-            );
-
-            const jwtToken = jwtGenerator(newUser.rows[0].user_id);
-
-    return res.json({ jwtToken });
-          }
-        
-            catch (e) {
-                console.error('Error Occurred', e);
-                throw e;
-              }
-          
-       
-        
     
-        
-        })
-      } catch (err) {
-        console.error(err.message);
-      }
+    const { email, password,firstname,lastname } = req.body;
+ 
+
+  try {
+    const user = await pool.query("SELECT * FROM administrators WHERE email = $1", [
+      email
+    ]);
+
+    if (user.rows.length > 0) {
+      return res.status(401).json("User already exist!");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+  
+    const bcryptPassword = await bcrypt.hash(password, salt);
+
+    let newUser = await pool.query(
+      "INSERT INTO administrators (firstname, lastname,email, passcode,status,resetlink) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [firstname,lastname, email, bcryptPassword,'active','testlink']
+    );
+
+    
+    console.log('success')
+    return res.json({ success: 'Administrator Account Created' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
  
 
 };
 
 exports.deleteAdmin =  async (req,res) => {
     try {
+        console.log('dsds')
       const { id } = req.params;
       const select = await pool.query("SELECT * FROM administrators WHERE user_id = $1", [
         id
@@ -81,9 +66,11 @@ exports.deleteAdmin =  async (req,res) => {
 
   exports.getAdmins =  async (req,res) => {
     try {
-      const { id } = req.params;
+    
+    console.log(req.params)
+      const { email} = req.params;
       
-      const todo = await pool.query("SELECT * FROM administrators ");
+      const todo = await pool.query(`SELECT * FROM administrators  `);
   
       res.json(todo.rows);
     } catch (err) {

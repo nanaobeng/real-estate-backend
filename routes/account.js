@@ -12,6 +12,6 @@ const {addAdmin,deleteAdmin,getAdmins} = require('../controllers/account');
 router.post("/admin/add", authorize,addAdmin);
 
 
-router.delete("/admin/delete/:id",authorize,deleteAdmin);
-router.get('/administrators',getAdmins);
+router.delete("/admin/delete/:id",deleteAdmin);
+router.get('/administrators/:email',getAdmins);
 module.exports = router;
