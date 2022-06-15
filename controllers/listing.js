@@ -11,11 +11,7 @@ const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk')
 require("dotenv").config();
-const s3 = new AWS.S3({
-    accessKeyId:'AKIA4D3AJ5CEEEMCQDHO',
-        secretAccessKey:'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'
 
-})
 
 
 
